@@ -1,72 +1,60 @@
 #include "binary_trees.h"
 
 /**
- * _realloc - Reallocates a memory block
- * @ptr: The pointer to the previous memory block
- * @old_size: The size of the old memory block
- * @new_size: The size of the new memory block
+ * tree_builder - Builds an AVL tree from a sorted array.
+ * @parent: The AVL tree's parent.
+ * @array: The sorted array of integers.
+ * @size: The length of the given array.
  *
- * Return: The pointer to the new memory block otherwise NULL
+ * Return: A pointer to the root of thhe AVL tree, otherwise NULL.
  */
-void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size)
+avl_t *tree_builder(avl_t *parent, int *array, int size)
 {
-	void *new_ptr;
-	unsigned int min_size = old_size < new_size ? old_size : new_size;
-	unsigned int i;
+	int *array_l = NULL, *array_r = NULL;
+	int size_l = 0, size_r = 0, len = 0;
+	avl_t *p = NULL, *l = NULL, *r = NULL;
 
-	if (new_size == old_size)
-		return (ptr);
-	if (ptr != NULL)
+	if ((size > 0) && (array != NULL))
 	{
-		if (new_size == 0)
+		p = malloc(sizeof(avl_t));
+		if (p != NULL)
 		{
-			free(ptr);
-			return (NULL);
+			len = size - 1;
+			size_l = (len / 2);
+			size_r = len - (len / 2);
+			if (size_l > 0)
+			{
+				array_l = array;
+				l = tree_builder(p, array_l, size_l);
+			}
+			if (size_r > 0)
+			{
+				array_r = array + size_l + 1;
+				r = tree_builder(p, array_r, size_r);
+			}
+			p->parent = parent;
+			p->left = l;
+			p->right = r;
+			p->n = *(array + (size / 2) - (size % 2 == 0 ? 1 : 0));
 		}
-		new_ptr = malloc(new_size);
-		if (new_ptr != NULL)
-		{
-			for (i = 0; i < min_size; i++)
-				*((char *)new_ptr + i) = *((char *)ptr + i);
-			free(ptr);
-			return (new_ptr);
-		}
-		free(ptr);
-		return (NULL);
 	}
-	else
-	{
-		new_ptr = malloc(new_size);
-		return (new_ptr);
-	}
+	return (p);
 }
 
 /**
- * heap_to_sorted_array - Creates a sorted array from a max binary heap tree.
- * @heap: A pointer to the max binary heap.
- * @size: A pointer to the resulting array's size value.
+ * sorted_array_to_avl - Builds an AVL tree from a sorted array.
+ * @array: The sorted array of integers.
+ * @size: The length of the given array.
  *
- * Return: A pointer to the array, otherwise NULL.
+ * Return: A pointer to the root of thhe AVL tree, otherwise NULL.
  */
-int *heap_to_sorted_array(heap_t *heap, size_t *size)
+avl_t *sorted_array_to_avl(int *array, size_t size)
 {
-	int *array = NULL;
-	heap_t *root;
-	int val;
-	size_t n = 0;
+	avl_t *root = NULL;
 
-	if (heap != NULL)
+	if (array != NULL)
 	{
-		root = heap;
-		while (root != NULL)
-		{
-			val = heap_extract(&root);
-			array = _realloc(array, sizeof(int) * n, sizeof(int) * (n + 1));
-			*(array + n) = val;
-			n++;
-		}
+		root = tree_builder(root, array, (int)size);
 	}
-	if (size != NULL)
-		*size = n;
-	return (array);
+	return (root);
 }
