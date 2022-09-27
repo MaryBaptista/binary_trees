@@ -1,40 +1,72 @@
 #include "binary_trees.h"
-/**
- * aux_sort - create the tree using the half element of the array
- * @parent: parent of the node to create
- * @array: sorted array
- * @begin: position where the array starts
- * @last: position where the array ends
- * Return: tree created
- */
-avl_t *aux_sort(avl_t *parent, int *array, int begin, int last)
-{
-	avl_t *root;
-	binary_tree_t *aux;
-	int mid = 0;
 
-	if (begin <= last)
-	{
-		mid = (begin + last) / 2;
-		aux = binary_tree_node((binary_tree_t *)parent, array[mid]);
-		if (aux == NULL)
-			return (NULL);
-		root = (avl_t *)aux;
-		root->left = aux_sort(root, array, begin, mid - 1);
-		root->right = aux_sort(root, array, mid + 1, last);
-		return (root);
-	}
-	return (NULL);
-}
 /**
- * sorted_array_to_avl - create a alv tree from sorted array
- * @array: sorted array
- * @size: size of the sorted array
- * Return: alv tree form sorted array
+ * _realloc - Reallocates a memory block
+ * @ptr: The pointer to the previous memory block
+ * @old_size: The size of the old memory block
+ * @new_size: The size of the new memory block
+ *
+ * Return: The pointer to the new memory block otherwise NULL
  */
-avl_t *sorted_array_to_avl(int *array, size_t size)
+void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size)
 {
-	if (array == NULL || size == 0)
+	void *new_ptr;
+	unsigned int min_size = old_size < new_size ? old_size : new_size;
+	unsigned int i;
+
+	if (new_size == old_size)
+		return (ptr);
+	if (ptr != NULL)
+	{
+		if (new_size == 0)
+		{
+			free(ptr);
+			return (NULL);
+		}
+		new_ptr = malloc(new_size);
+		if (new_ptr != NULL)
+		{
+			for (i = 0; i < min_size; i++)
+				*((char *)new_ptr + i) = *((char *)ptr + i);
+			free(ptr);
+			return (new_ptr);
+		}
+		free(ptr);
 		return (NULL);
-	return (aux_sort(NULL, array, 0, ((int)(size)) - 1));
+	}
+	else
+	{
+		new_ptr = malloc(new_size);
+		return (new_ptr);
+	}
+}
+
+/**
+ * heap_to_sorted_array - Creates a sorted array from a max binary heap tree.
+ * @heap: A pointer to the max binary heap.
+ * @size: A pointer to the resulting array's size value.
+ *
+ * Return: A pointer to the array, otherwise NULL.
+ */
+int *heap_to_sorted_array(heap_t *heap, size_t *size)
+{
+	int *array = NULL;
+	heap_t *root;
+	int val;
+	size_t n = 0;
+
+	if (heap != NULL)
+	{
+		root = heap;
+		while (root != NULL)
+		{
+			val = heap_extract(&root);
+			array = _realloc(array, sizeof(int) * n, sizeof(int) * (n + 1));
+			*(array + n) = val;
+			n++;
+		}
+	}
+	if (size != NULL)
+		*size = n;
+	return (array);
 }
